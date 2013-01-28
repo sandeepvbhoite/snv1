@@ -19,10 +19,10 @@
 ?><?php 
 
 class database {
-	private static $host = 'localhost';
-	private static $username = 'sntester';
-	private static $password = 'redchilli10';
-	private static $dbname   = 'snv1';
+	private static $host = 'your host'; //Probably localhost
+	private static $username = 'sntester'; //Username for the database, here sntester
+	private static $password = 'snt3st3rv1'; // Password for the account
+	private static $dbname   = 'snv1'; // Database name
 	private static $db;
 
 	
