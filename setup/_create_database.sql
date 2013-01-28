@@ -12,10 +12,14 @@ CREATE DATABASE `snv1`;
 USE `snv1`;
 
 -- We need to create an user to access this database
+CREATE user 'sntester' IDENTIFIED BY 'snt3st3rv1';
+
+-- Grant powers to the user to perform following actions
+-- on the database.
 
 GRANT SELECT, INSERT, DELETE, UPDATE
 ON snv1.*
-TO sntester@locahost
+TO 'sntester'@'locahost'
 IDENTIFIED BY 'snt3st3rv1';
 --
 -- Database: `snv1`

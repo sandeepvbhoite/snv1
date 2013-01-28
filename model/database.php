@@ -19,7 +19,7 @@
 ?><?php 
 
 class database {
-	private static $host = 'your host'; //Probably localhost
+	private static $host = 'localhost'; //Most probably localhost, or set it to the host where your database is
 	private static $username = 'sntester'; //Username for the database, here sntester
 	private static $password = 'snt3st3rv1'; // Password for the account
 	private static $dbname   = 'snv1'; // Database name
