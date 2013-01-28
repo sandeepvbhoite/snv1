@@ -22,53 +22,60 @@
 	require_once('model/database.php');
 	require_once('model/userInfo.php');
 	
-	if (!isset($_POST['firstName']) || !isset($_POST['lastName']) || !isset($_POST['emailAddress']) || !isset($_POST['password']) ) {
-		$error = " Please fill in all the details to get signed up!";
-		include ('loginpage.php');
-	}
+	# Let's first save user information 
+	
+	$fname = trim($_POST['firstName']);	
+	$lname = trim($_POST['lastName']);
+	$year  = $_POST['year'];
+	$month = $_POST['month'];
+	$day = $_POST['day'];
+	$gender = $_POST['gender'];
+	$email = trim($_POST['emailAddress']);
+	$password = $_POST['password'];
 
-	$fname = $_POST['firstName'];
+	# Checking if all fields are filled
+
+	if (empty($fname) || empty($lname) || empty($email) || empty($password)) {
+		# since user has not filled all the necessary details,
+		# this is redirecting user to the welcome page
+		header('Location: .');
+	}
+	# Birthdate validation, using checkdate temporarily, not the right place for it 
+	# here. It expects its parameters to be integers.
+	if(!checkdate($month, $day, $year)) {
+		$dateError = "Please select a valid birth date";
+	}
+	# Name validation
 	$fname_pattern = '/(?=.*[[:digit:]])/';
 	$isfnameok = preg_match($fname_pattern, $fname);
 	if ($isfnameok) {
 		$fnameerror = "Your first name should contain letters only";
 	}
-
-	$lname = $_POST['lastName'];
-
 	$lname_pattern = '/(?=.*[[:digit:]])/';
 	$islnameok = preg_match($lname_pattern, $lname);
 	if ($islnameok) {
 		$lnameerror = "Your last name should contain letters only";
 	}
-
-
-	$year  = $_POST['year'];
-	$month = $_POST['month'];
-	$day = $_POST['day'];
-	$gender = $_POST['gender'];
-	$email = $_POST['emailAddress'];
 	if (!filter_var ($email, FILTER_VALIDATE_EMAIL)) {
 		$emailerror = "Please enter a valid email address";
 	}
-	$password = $_POST['password'];
+	/*
+	This is rude, I guess.. I am not sure, if this should be used..
 	$pw_pattern = '/^(?=.*[[:digit:]]) (?=.*[[:punct:]])[[:print:]]{6,}$/';
 	$isPasswordOk = preg_match($pw_pattern, $password);
 	if (!$isPasswordOk) {
 		$passworderror = "Password must contain at least 6 characters, 1 digit, 1 punctuation character";
 	}
+	*/
 	$dob = $year . '-' . $month . '-' . $day;
 	
-	if ($isfnameok || $islnameok || $isPasswordOk || $emailerror) {
+	if ($fnameerror || $lnameerror || $emailerror || $passworderror || $dateError) {
 		include ('logina2.php');
-	}
-
-	if (createUser($fname, $lname, $dob, $gender, $email, $password)) {
+	} else {
+		createUser($fname, $lname, $dob, $gender, $email, $password);
 		$userid = getuserID($email);
 		$_SESSION['userid'] = $userid;
 		header('Location: .');
-	} else {
-		include ('loginpage.php');
-	}
+	} 
 
 ?>

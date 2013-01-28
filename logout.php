@@ -35,8 +35,7 @@
 		setcookie($name, '', $expire, $path, $domain, $secure, $httponly);
 
 		session_destroy();
-
-		include ('loginpage.php');
+		header('Location: .');
 	}
 
 ?>

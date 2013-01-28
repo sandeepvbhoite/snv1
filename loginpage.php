@@ -19,7 +19,7 @@
 ?>
 <html>
   <head>
-        <title>SocialNetwork/Login</title>
+        <title>Welcome to SNv1 : Login or sign up to create a new account</title>
         <style type="text/css">
               body{
 	                   margin:0;
@@ -190,7 +190,7 @@
                                 }
           </style>    
  </head>
-    <body 
+    <body> 
    <div id="main">
          <div id="panel"></div>
                  
