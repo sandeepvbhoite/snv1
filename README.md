@@ -24,14 +24,17 @@ then it makes total 100 posts, compared to a single post from your friend, you w
 by that your single friend. So that, I have differentiated all those posts in two streams. They are as follows :
 
 ######1. Private:
-    This is your default stream. Obviously you want to see things posted by your friends first. Pages are secondary.
-    So, you get to see things posted by your friends in here. Nothing else would be included.
+
+This is your default stream. Obviously you want to see things posted by your friends first. Pages are secondary.
+So, you get to see things posted by your friends in here. Nothing else would be included.
+
 ######2. Public:
-    Now this is where all that crap(?) material lies. Have fun with it when none of your friend is active. You can 
-    interact with these posts just like the way you would do with others.
+
+Now this is where all that crap(?) material lies. Have fun with it when none of your friend is active. You can 
+interact with these posts just like the way you would do with others.
   
-    Little more about pages : You have to **like** a page to get subscribed to the posts of it. Only admin (owner)
-    of the page can make new posts on the page. 
+Little more about pages : You have to **like** a page to get subscribed to the posts of it. Only admin (owner)
+of the page can make new posts on the page. 
 
 ###Installation:
   We built and tested this porject under GNU/Linux. You can use the SQL script which is under `setup` directory
