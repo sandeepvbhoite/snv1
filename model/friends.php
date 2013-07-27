@@ -21,128 +21,216 @@
 
 	function getFriendList($userid) {
 		global $db;
+		
 		$query = "SELECT friendID FROM friends
-			WHERE userID = '$userid'";
-		$result = $db->query($query);
-		$totalFriends = $result->num_rows;
-		$friendID = array();
-		for ($i=0; $i<$totalFriends; $i++) {
-			$row = $result->fetch_assoc();
-			$friendID[] = $row['friendID'];
+			WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $userid);
+		$stmt->bind_result($friendID);
+		// Array to store all of the friend IDs
+		$friendIDs = array();
+		// Fetch all available friends
+		while ($stmt->fetch()) {
+			$friendIDs[] = $friendID;
 		}
-		$result->free();
-		return $friendID;
+		$stmt->close();
+		return $friendIDs;
 	}
 
 	function sendFriendRequest($sendBy, $sendTo) {
-			global $db;
+		global $db;
+		
 		$query = "INSERT INTO friend_requests
 			(fromUserID, toUserID)
 			VALUES 
-			('$sendBy', '$sendTo')";
-		$success = $db->query($query);
+			(?, ?)";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $sendBy, $sendTo);
+		$success = $stmt->execute();
+		$stmt->close();
 		return $success;
 	}
 
 	function getReceivedRequests($userid) {
 		global $db;
+		
 		$query = "SELECT fromUserID from friend_requests
-				WHERE toUserID = '$userid'";
-		$success = $db->query($query);
+				WHERE toUserID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $userid);
+		$stmt->bind_result($fromUserID);
+		$success = $stmt->execute();
+		// Array to store received friend requests
 		$requestsReceived = array();
-		$total = $success->num_rows;
-		for($i=0; $i<$total; $i++) {
-			$row = $success->fetch_assoc();
-			$requestsReceived[] = $row['fromUserID'];
+		
+		while ($stmt->fetch()) {
+			$requestsReceived[] = $fromUserID;
 		}
-		$success->free();
+		$stmt->close();
 		return $requestsReceived;
 	}
 
 	function getSentRequests($userid) {
-		global $db;
-		$query = "SELECT toUserID from friend_requests
-				WHERE fromUserID = '$userid'";
-		$success = $db->query($query);
-		$requestsSent = array();
-		$total = $success->num_rows;
-		for($i=0; $i<$total; $i++) {
-			$row = $success->fetch_assoc();
-			$requestsSent[] = $row['toUserID'];
-		}
-		$success->free();
-		return $requestsSent;
 
+		global $db;
+
+		$query = "SELECT toUserID from friend_requests
+				WHERE fromUserID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $userid);
+		$stmt->bind_result($toUserID);
+		$success = $stmt->execute();
+		$requestsSent = array();
+		
+		while ($stmt->fetch()) {
+			$requestsSent[] = $toUserID;
+		}
+		$stmt->close();
+		return $requestsSent;
 	}
 
 	function acceptRequest($userid, $ofUserID) {
+		
 		global $db;
+
 		/* let's first check, if there's really such a request! */
 		$query = "SELECT fromUserID from friend_requests
-				WHERE toUserID = '$userid' AND fromUserID = '$ofUserID'";
-		$success = $db->query($query);
-		if ($success->num_rows > 0) {
+				WHERE toUserID = ? AND fromUserID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $userid, $ofUserID);
+		$stmt->bind_result($fromUID);
+		$stmt->execute();
+		$stmt->fetch();
+		$stmt->close();
+
+		// If There exist any request, then $fromUID must contain some value
+		if ($fromUID) {
+			
+			/* Now that we know there is such a request, and user wants to
+			 * accept it, then we remove this request from friend_requests
+			 * and add this `new friend' to the friends table
+			 */
 			$query = "DELETE FROM friend_requests
-					WHERE toUserID = '$userid' AND fromUserID = '$ofUserID'";
-			$s = $db->query($query);
+					WHERE toUserID = ? AND fromUserID = ?";
+
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii",$userid, $ofUserID);
+			$stmt->execute();
+			$stmt->close(); 
+
 			$query = "INSERT INTO friends
 					(userID, friendID)
 					VALUES
-					('$userid', '$ofUserID')";
-			$s = $db->query($query);
+					(?, ?)";
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii", $userid, $ofUserID);
+			$stmt->execute();
+			$stmt->close();
+
 			$query = "INSERT INTO friends
 					(userID, friendID)
 					VALUES
-					('$ofUserID', '$userid')";
-			$s = $db->query($query);
+					(?, ?)";
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii", $ofUserID, $userid);
+			$stmt->execute();
+			$stmt->close();
 		}
 
 	}
 
 	function rejectRequest($userid, $ofUserID) {
+		
 		global $db;
+		
 		/* let's first check, if there's really such a request! */
 		$query = "SELECT fromUserID from friend_requests
-				WHERE toUserID = '$userid' AND fromUserID = '$ofUserID'";
-		$success = $db->query($query);
-		if ($success->num_rows > 0) {
+				WHERE toUserID = ? AND fromUserID = ?";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $userid, $ofUserID);
+		$stmt->bind_result($fromUID);
+		$stmt->execute();
+		$stmt->fetch();
+		$stmt->close();
+
+		/* now, if there exists such a request, then $fromUID will have
+		 * some value.
+		 */
+		if ($fromUID) {
+
+			// Remove such a friend request entry from friend_requests table
 			$query = "DELETE FROM friend_requests
-					WHERE toUserID = '$userid' AND fromUserID = '$ofUserID'";
-			$s = $db->query($query);
-			
+					WHERE toUserID = ? AND fromUserID = ?";
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii", $userid, $ofUserID);
+			$stmt->execute();
+			$stmt->close();
 		}
 	}
 
+	/*
+	 * Function to cancel already sent request
+	 */
 	function cancelRequest($userid, $toUserID) {
+	
 		global $db;
+		
 		$query = "SELECT fromUserID from friend_requests
-				WHERE toUserID = '$toUserID' AND fromUserID = '$userid'";
-		$success = $db->query($query);
-		if ($success->num_rows > 0) {
+				WHERE toUserID = ? AND fromUserID = ?";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $toUserID, $userid);
+		$stmt->bind_result($fromUID);
+		$stmt->execute();
+		$stmt->fetch();
+		$stmt->close();
+
+		// If $fromUID is true..
+		if ($fromUID) {
+
 			$query = "DELETE FROM friend_requests
-					WHERE toUserID = '$toUserID' AND fromUserID = '$userid'";
-			$s = $db->query($query);
+					WHERE toUserID = ? AND fromUserID = ?";
+			
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii", $toUserID, $userid);
+			$stmt->execute();
+			$stmt->close();
 		}
 	}
 
-	function removeFriend($userid, $friendID) {
+	function removeFriend($userid, $friendID) {	
 		global $db;
+		
 		$query = "DELETE FROM friends
 				WHERE 
-				(userID = '$userid' AND friendID = '$friendID') OR 
-				(userID = '$friendID' AND friendID = '$userid')";
-		$success = $db->query($query);
+				(userID = ? AND friendID = ?) OR 
+				(userID = ? AND friendID = ?)";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("iiii", $userid, $friendID, $friendID, $userid);
+		$success = $stmt->execute();
 		return $success;	
 	}
 	
 	function isFriendRequestPresent($userid, $toUserID) {
 		global $db;
+
 		$query = "SELECT COUNT(*) as total FROM friend_requests
-			WHERE fromUserID = '$userid' AND toUserID = '$toUserID'";
-		$success = $db->query($query);
-		$row = $success->fetch_assoc();
-		$total = $row['total'];
-		$success->free();
+			WHERE fromUserID = ? AND toUserID = ?";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $userid, $toUserID);
+		$stmt->bind_result($total);
+		$stmt->execute();
+		$stmt->fetch();
+		$stmt->close();
+
 		if ($total > 0) {
 			return true;
 		} else {
@@ -152,13 +240,17 @@
 
 	function isFriend($userid, $ofuserid) {
 		global $db;
+		
 		$query = "SELECT COUNT(*) AS total FROM friends
-				WHERE (userID = '$userid' AND friendID = '$ofuserid') OR
-					(userID = '$ofuserid' AND friendID = '$userid')";
-		$success = $db->query($query);
-		$row = $success->fetch_assoc();
-		$isFriend = $row['total'];
-		$success->free();
+				WHERE (userID = ? AND friendID = ?) OR
+					(userID = ? AND friendID = ?)";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("iiii", $userid, $ofuserid, $ofuserid, $userid);
+		$stmt->bind_result($total);
+		$stmt->execute();
+		$stmt->close();
+
 		if ($isFriend > 0) {
 			return true;
 		} else {
