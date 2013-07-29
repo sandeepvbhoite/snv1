@@ -109,44 +109,49 @@
 
 	function getPosts($userid, $friends) {
 		
-		global $db;
+		// Get PDO 
+		$dsn = 'mysql:host=localhost;dbname=snv1';
+		$username = 'sntester';
+		$password = 'snt3st3rv1';
+		$options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
+
+		try {
+			$db = new PDO($dsn, $username, $password, $options);
+		} catch (PDOException $e) {
+			$error_message = "<p>Error connecting database</p>";
+			echo $error_message;
+			exit(0);
+		}
+
 		$friends[] = $userid;
 		$totalFriends = count($friends);
 		$query = "SELECT * FROM posts
 				WHERE userID in (%s) ORDER BY timeOn DESC";
+		
 		$inclause = implode(',', array_fill(0, $totalFriends, '?')); // to fill (?)s in SQL
-		$paramtype = implode('', array_fill(0, $totalFriends, 'i')); // no. of ii's
-
-		// Let's build parameters to bind_param
-		$bind_param_params = array();
-		$bind_param_params[] = $paramtype;
-		for($i=0; $i<$totalFriends; $i++) {
-			$bind_param_params[] = $friends[$i];
-		}
-
 		$prepareQuery = sprintf($query, $inclause);
+		
 		$stmt = $db->prepare($prepareQuery);
-		//$stmt->bind_param
-		call_user_func_array (array($stmt, "bind_param"), $bind_param_params);
-		$stmt->execute();
-		$stmt->bind_result($postID, $userID, $postText, $ifImage, $timeOn);
-		$stmt->store_results();
+		$stmt->execute($friends);
+		
 		$posts = array();
 		$post = array();
-
-		while ($stmt->fetch()) {
-			$post['postID'] = $postID;
-			$post['userID'] = $userID;
-			$post['postername'] = getUserName($userID);
-			$post['posterpic'] = getCurrentProfilePic($userID);
-			$post['postText'] = $postText;
-			$post['ifImage'] = $ifImage;
-			$post['timeOn'] = $timeOn;
-			$post['likes'] = getLikes($postID);
+		$row = $stmt->fetch();
+		
+		while ($row != null) {
+			$post['postID'] = $row['postID'];
+			$post['userID'] = $row['userID'];
+			$post['postername'] = getUserName($row['userID']);
+			$post['posterpic'] = getCurrentProfilePic($row['userID']);
+			$post['postText'] = $row['postText'];
+			$post['ifImage'] = $row['ifImage'];
+			$post['timeOn'] = $row['timeOn'];
+			$post['likes'] = getLikes($row['postID']);
 
 			$posts[] = $post;
+			$row = $stmt->fetch();
 		}
-		$stmt->close();
+		$stmt->closeCursor();
 		return $posts;
 	}
 
