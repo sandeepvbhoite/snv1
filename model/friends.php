@@ -28,6 +28,7 @@
 		$stmt = $db->prepare($query);
 		$stmt->bind_param("i", $userid);
 		$stmt->bind_result($friendID);
+		$stmt->execute();
 		// Array to store all of the friend IDs
 		$friendIDs = array();
 		// Fetch all available friends

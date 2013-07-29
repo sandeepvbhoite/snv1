@@ -17,45 +17,66 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 ?><?php
+	
+	// Get database connection
 	$db = database::getDB();
 
 	function getComments($postID) {
+		
 		global $db;
+		
 		$query = "SELECT userID, postID, commentText, timeOn FROM comments
-				WHERE postID = '$postID'";
-		$success = $db->query($query);
-		$total   = $success->num_rows;
+				WHERE postID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $postID);
+		$stmt->bind_result($userID, $postID, $commentText, $timeOn);
+		$stmt->execute();
+		$stmt->store_result();
+
+		// Array to Store *number* of comments
 		$comments = array();
-		for ($i=0; $i<$total; $i++) {
-			$row = $success->fetch_assoc();
-			$comments[$i] = array();
-			$comments[$i]['userID'] = $row['userID'];
-			$comments[$i]['commentername'] = getUserName($row['userID']);
-			$comments[$i]['postID'] = $row['postID'];
-			$comments[$i]['comment'] = $row['commentText'];
-			$comments[$i]['timeOn'] = $row['timeOn'];
-		}
-		$success->free();
+		// Array to store a single comment temporarily
+		$comment = array();
+		while ($stmt->fetch()) {
+
+			$comment['userID'] = $userID;
+			$comment['commentername'] = getUserName($userID);
+			$comment['postID'] = $postID;
+			$comment['comment'] = $commentText;
+			$comment['timeOn'] = $timeOn;
+			// Now store this single comment in `comments` array.
+			$comments[] = $comment;
+		}	
+		$stmt->close();
 		return $comments;
 	}
 
 	function getLikes($postID) {
+		
 		global $db;
 		$query = "SELECT COUNT(*) AS totallikes
 				FROM likes
-				WHERE postID = '$postID'";
-		$success = $db->query($query);
-		$total   = $success->fetch_assoc();
-		$total   = $total['totallikes'];
-		$success->free();
+				WHERE postID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $postID);
+		$stmt->bind_result($totalLikes);
+		$stmt->execute();
+		$stmt->fetch();
+		// Close stmt 
+		$stmt->close();
+		// Return total number of likes to the postID
 		return $total;
 	}
 
-
+/*
 	function getPosts($userid, $friends) {
+		
 		global $db;
 		$totalFriends = count($friends);
 		$firstFriend  = $userid;
+		
 		$query = "SELECT * FROM posts
 				WHERE userID = '$firstFriend'";
 
@@ -79,16 +100,53 @@
 			$posts[$i]['ifImage'] = $row['ifImage'];
 			$posts[$i]['timeOn'] = $row['timeOn'];
 			$posts[$i]['likes'] = getLikes($row['postID']);
-/*			$comments = getComments($row['PostID']);
-			$total = count($comments);
-			for ($i=0; $i<$total; $i++) {
-				$posts[$i]['comments']['userID'] = $comment['userID'];
-				$posts[$i]['comments']['comment'] = $comment['comment'];
-				$posts[$i]['comments']['commentername'] = $comment['commentername'];
-				$posts[$i]['comments']['timeOn'] = $comment['timeOn'];
-			}
-*/		}
+
+		}
 		$result->free();
+		return $posts;
+	}
+*/
+
+	function getPosts($userid, $friends) {
+		
+		global $db;
+		$friends[] = $userid;
+		$totalFriends = count($friends);
+		$query = "SELECT * FROM posts
+				WHERE userID in (%s) ORDER BY timeOn DESC";
+		$inclause = implode(',', array_fill(0, $totalFriends, '?')); // to fill (?)s in SQL
+		$paramtype = implode('', array_fill(0, $totalFriends, 'i')); // no. of ii's
+
+		// Let's build parameters to bind_param
+		$bind_param_params = array();
+		$bind_param_params[] = $paramtype;
+		for($i=0; $i<$totalFriends; $i++) {
+			$bind_param_params[] = $friends[$i];
+		}
+
+		$prepareQuery = sprintf($query, $inclause);
+		$stmt = $db->prepare($prepareQuery);
+		//$stmt->bind_param
+		call_user_func_array (array($stmt, "bind_param"), $bind_param_params);
+		$stmt->execute();
+		$stmt->bind_result($postID, $userID, $postText, $ifImage, $timeOn);
+		$stmt->store_results();
+		$posts = array();
+		$post = array();
+
+		while ($stmt->fetch()) {
+			$post['postID'] = $postID;
+			$post['userID'] = $userID;
+			$post['postername'] = getUserName($userID);
+			$post['posterpic'] = getCurrentProfilePic($userID);
+			$post['postText'] = $postText;
+			$post['ifImage'] = $ifImage;
+			$post['timeOn'] = $timeOn;
+			$post['likes'] = getLikes($postID);
+
+			$posts[] = $post;
+		}
+		$stmt->close();
 		return $posts;
 	}
 
@@ -187,15 +245,8 @@
 			$posts[$i]['ifImage'] = $row['ifImage'];
 			$posts[$i]['timeOn'] = $row['timeOn'];
 			$posts[$i]['likes'] = getLikes($row['postID']);
-/*			$comments = getComments($row['PostID']);
-			$total = count($comments);
-			for ($i=0; $i<$total; $i++) {
-				$posts[$i]['comments']['userID'] = $comment['userID'];
-				$posts[$i]['comments']['comment'] = $comment['comment'];
-				$posts[$i]['comments']['commentername'] = $comment['commentername'];
-				$posts[$i]['comments']['timeOn'] = $comment['timeOn'];
-			}
-*/		}
+		}
+	
 
 		return $posts;
 	}

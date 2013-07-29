@@ -61,7 +61,6 @@
 			FROM users
 			WHERE userID = ?";	
 
-		$stmt = $db->stmt_init();
 		$stmt = $db->prepare($query);
 		$stmt->bind_param("i", $userid);
 		$stmt->bind_result($emailAddress, $firstName, $lastName,
@@ -89,15 +88,18 @@
 		return $profile;
 	}
 
-	function getUserName($userid) {
-		
-		global $db;
-
-		$query = "SELECT firstName, lastName FROM users
-				WHERE userID = ?";
+	function getUserName($userid) {	
+		global $db;	
+		$query = "SELECT firstName, lastName 
+			FROM users 
+			WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("s", $userid);
+		if (!$stmt) {
+			echo "<p>" . mysqli_error($db) . "</p>";
+			exit(0);
+		}
+		$stmt->bind_param("i", $userid);
 		$stmt->bind_result($firstName, $lastName);
 		$stmt->execute();
 		// Fetch result
@@ -119,7 +121,7 @@
 				WHERE userID = ?" ;
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ss", $userid, $password);
+		$stmt->bind_param("si", $password, $userid);
 		$result = $stmt->execute();
 		$stmt->close();
 		return $result;

@@ -17,157 +17,222 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 ?><?php
+	// Get database connection
 	$db = database::getDB();
+
 	function getDialogueList ($userid) {
 		global $db;
+		/*
+		 * NEED A BETTER QUERY HERE
+		 */
 		$query = "SELECT * FROM message_records
 				INNER JOIN messages
 				ON message_records.convID = messages.convID
-				WHERE user1ID = '$userid' OR user2ID = '$userid'
+				WHERE user1ID = ? OR user2ID = ?
 				ORDER BY onTime";
-		$success = $db->query($query);
 
-		/* Now grab the conIDs from database,
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("ii", $userid, $userid);
+		$stmt->bind_result($convID, $foo1, $foo2, $foo3, $foo8, $foo4, $foo5,
+				$foo6, $foo7);
+		$stmt->execute();
+
+		/* Now grab the convIDs from database,
 		   Make an array of unique convIDs, 
 		   and return them
 		*/
 
-		$totalDialogues = $success->num_rows;
+		//$totalDialogues = $success->num_rows;
 		$convIDs = array();
-		for ($i=0; $i<$totalDialogues; $i++) {
-			$row = $success->fetch_assoc();
-			$convID = $row['convID'];
+		while ($stmt->fetch()) {
+			
 			if (!in_array($convID, $convIDs)) {
 				$convIDs[] = $convID;
 			}
 		}
-		$success->free();
+		$stmt->close();
 		return $convIDs;
-
 	}
 	
 	function getLastMessageWithUser ($userid, $convID) {
+		
 		global $db;
+		
 		$query = "SELECT * FROM messages
-				WHERE convID = '$convID'
+				WHERE convID = ?
 				ORDER BY onTime DESC
 				LIMIT 1";
-		$success = $db->query($query);
-		if ($success->num_rows > 1) {
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $convID);
+		$stmt->bind_result($messageID, $convID, $senderID,
+				$receiverID, $msgText, $onTime);
+		$stmt->execute();
+		$row = $stmt->fetch();
+		
+		if (!$messageID) {
 			echo "<p>Something has gone wrong</p>";
 			exit();
 		}
-		$row = $success->fetch_assoc();
-		$message = $row['msgText'];
-		$sender  = $row['senderID'];
-		$receiver = $row['receiverID'];
-		$timeOn = $row['onTime'];
+		
 		$lastMessageWithUser = array();
-		$lastMessageWithUser['message'] = $row['msgText'];
+		$lastMessageWithUser['message'] = $msgText;
 		if ($userid != $sender) {
-			$lastMessageWithUser['user'] = $sender;
+			$lastMessageWithUser['user'] = $senderID;
 		} else {
-			$lastMessageWithUser['user'] = $receiver;
+			$lastMessageWithUser['user'] = $receiverID;
 		}
-		$lastMessageWithUser['timeOn'] = $timeOn;
-		$success->free();
+		$lastMessageWithUser['timeOn'] = $onTime;
+		$stmt->close();
+		
 		return $lastMessageWithUser;
 	}
 
 	function getMessages ($convID) {
+		
 		global $db;
+		
 		$query = "SELECT senderID, receiverID, msgText, onTime
 				FROM messages
-				WHERE convID = '$convID'
+				WHERE convID = ?
 				ORDER BY onTime DESC
 				LIMIT 6";
-		$success = $db->query($query);
-		$total   = $success->num_rows;
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("i", $convID);
+		$stmt->bind_result($senderID, $receiverID, $msgText, $onTime);
+		$stmt->execute();
 		$messages = array();
-		for ($i=0; $i<$total; $i++) {
-			$row = $success->fetch_assoc();
-			$messages[$i] = array();
-			$messages[$i]['senderID'] = $row['senderID'];
-			$messages[$i]['senderName'] = getUserName($row['senderID']);
-			$messages[$i]['receiverID'] = $row['receiverID'];
-			$messages[$i]['receiverName'] = getUserName($row['receiverID']);
-			$messages[$i]['msgText'] = $row['msgText'];
-			$messages[$i]['onTime'] = $row['onTime'];
+		$message = array(); // Single message
+		$stmt->store_result();
+		while ($stmt->fetch()) {	
+			
+			$message['senderID'] = $senderID;
+			/* can't run two queries simultaneously using MYSQi,
+			 * so, iterate over this array again to get names */
+			$message['senderName'] = getUserName($senderID);
+			$message['receiverID'] = $receiverID;
+			$message['receiverName'] = getUserName($receiverID);
+			$message['msgText'] = $msgText;
+			$message['onTime'] = $onTime;
+			$messages[] = $message;
 		}
-		$success->free();
+		
+
+		$stmt->close();
 		return $messages;
 	}
 
 	function sendMessage ($convID, $userid, $receiverID, $msg) {
+		
 		global $db;
 		$msg = $db->real_escape_string($msg);
+		
 		$query = "INSERT INTO messages
 				(convID, senderID, receiverID, msgText)
 				VALUES
-				('$convID', '$userid', '$receiverID', '$msg')";
-		$success = $db->query($query);
+				(?, ?, ?, ?)";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("iiis", $convID, $userid, $receiverID, $msg);
+		$success = $stmt->execute();
 		return $success;
 	}
 
 
 	function sendFirstMessage($userid, $toUserID, $msg) {
+		
 		global $db;
+		
 		/* First check if there is already two user's pair in message_records */
 		$msg = $db->real_escape_string($msg);
 		$query = "SELECT COUNT(*) AS total FROM message_records
 				WHERE
-				(user1ID = '$userid' AND user2ID = '$toUserID')
+				(user1ID = ? AND user2ID = ?)
 				OR
-				(user1ID = '$toUserID' AND user2ID = '$userid')";
-		$result = $db->query($query);
-		$result = $result->fetch_assoc();
-		if( $result['total'] < 1 ) {
-		/* Now that there does not exist this pair, let's create it, and store the first message */
-		/* First, create new convID */
+				(user1ID = ? AND user2ID = ?)";
+
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("iiii", $userid, $toUserID, $toUserID, $userid);
+		$stmt->bind_result($total);
+		$stmt->execute();
+		//$result = $db->query($query);
+		//$result = $result->fetch_assoc();
+		$stmt->fetch();
+		$stmt->close();
+
+		if( $total < 1 ) {
+			
+			/* Now that there does not exist this pair, let's create it, 
+			   and store the first message */
+			/* First, create new convID */
 			$query = "INSERT INTO message_records
 					(user1ID, user2ID)
 					VALUES
-					('$userid', '$toUserID')";
-			$success = $db->query($query);
-		/* We will need this newly created convID to store message in messages table */
+					(?, ?)";
+			
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("ii", $userid, $toUserID);
+			$stmt->execute();
+			$stmt->close();
+			
+			/* We will need this newly created convID to store message 
+			   in messages table */
 			$query = "SELECT * FROM message_records
 					WHERE 
-					(user1ID = '$userid' AND user2ID = '$toUserID')
+					(user1ID = ? AND user2ID = ?)
 					OR
-					(user1ID = '$toUserID' AND user2ID = '$userid')";
-			$success = $db->query($query);
-			$row = $success->fetch_assoc();
-		/* Here is the convID */
-			$convID = $row['convID'];
-		/* The query to store the message */
+					(user1ID = ? AND user2ID = ?)";
+
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("iiii", $userid, $toUserID, $toUserID, $userid);
+			$stmt->bind_result($convID, $user1ID, $user2ID);
+			$stmt->execute();
+			// Fetch results
+			$stmt->fetch();
+			$stmt->close();
+			/* The query to store the message */
 			$query = "INSERT INTO messages
 					(convID, senderID, receiverID, msgText)
 					VALUES
-					('$convID', '$userid', '$toUserID', '$msg')";
-			$success = $db->query($query);
-			return $convID;
+					(?, ?, ?, ?)";
+
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("iiis", $convID, $userid, $toUserID, $msg);
+			$success = $stmt->execute();
+			$stmt->close();
+			return $success;
+		
 		} else {
-		/* If the pair already exists, we just need to store the message */
+			
+			/* If the pair already exists, we just need to store the message */
 			$query = "SELECT * FROM message_records
 				WHERE 
-				(user1ID = '$userid' AND user2ID = '$toUserID')
+				(user1ID = ? AND user2ID = ?)
 				OR
-				(user1ID = '$toUserID' AND user2ID = '$userid')";
-			$success = $db->query($query);
-			$row = $success->fetch_assoc();
-		/* Here is the convID */
-			$convID = $row['convID'];
-		/* The query to store the message */
+				(user1ID = ? AND user2ID = ?)";
+
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("iiii", $userid, $toUserID, $toUserID, $userid);
+			$stmt->bind_result($convID, $user1ID, $user2ID);
+			$stmt->execute();
+			$stmt->fetch();
+			$stmt->close();
+
+			/* The query to store the message */
 			$query = "INSERT INTO messages
 					(convID, senderID, receiverID, msgText)
 					VALUES
-					('$convID', '$userid', '$toUserID', '$msg')";
-			$success = $db->query($query);
-			return $convID;
+					(?, ?, ?, ?)";
+
+			$stmt = $db->prepare($query);
+			$stmt->bind_param("iiis", $convID, $userid, $toUserID, $msg);
+			$success = $stmt->execute();
+			$stmt->close();
+			return $success;
 	
 		}
 
 	}
 
 ?>
-	
