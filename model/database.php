@@ -17,34 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 ?><?php 
-/*
-class database {
-	private static $host = 'localhost'; //Most probably localhost, or set it to the host where your database is
-	private static $username = 'sntester'; //Username for the database, here sntester
-	private static $password = 'snt3st3rv1'; // Password for the account
-	private static $dbname   = 'snv1'; // Database name
-	private static $db;
 
-	
-	private function __construct() { }
 
-	public static function getDB () {
-		if (!isset(self::$db)) {
-			self::$db = new mysqli(self::$host, self::$username, self::$password, self::$dbname);
-			$connectionError = self::$db->connect_error;
-			if ($connectionError != null) {
-				echo "<p> Connection error : $connectionError</p>";
-				exit();
-			}
-		}
-		return self::$db;
-	}
-}
-*/
 class database 
 {
-
 	private static $db;
+	// Username for the database
+	private static $username = 'sntester';
+	// Password of the user
+	private static $password = 'snt3st3rv1';
+	private static $dsn = 'mysql:dbname=snv1;host=127.0.0.1;charset=utf8';
 
 	private function __construct() { }
 
@@ -53,8 +35,7 @@ class database
 		if (!isset(self::$db)) {
 			// Try to get a new PDO
 			try {
-				self::$db = new PDO('mysql:dbname=snv1;host=127.0.0.1;charset=utf8', 
-						'sntester', 'snt3st3rv1');
+				self::$db = new PDO(self::$dsn, self::$username, self::$password);
 
 				// Sets emulating prepared statements in PHP to false
 				self::$db->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
