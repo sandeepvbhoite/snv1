@@ -26,16 +26,18 @@
 			WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($friendID);
+		$stmt->bindValue(1, $userid);
 		$stmt->execute();
+		$row = $stmt->fetch();
 		// Array to store all of the friend IDs
 		$friendIDs = array();
 		// Fetch all available friends
-		while ($stmt->fetch()) {
+		while ($row != null) {
+			$friendID = $row['friendID'];
 			$friendIDs[] = $friendID;
+			$row = $stmt->fetch();
 		}
-		$stmt->close();
+		$stmt->closeCursor();
 		return $friendIDs;
 	}
 
@@ -48,9 +50,10 @@
 			(?, ?)";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ii", $sendBy, $sendTo);
+		$stmt->bindValue(1, $sendBy);
+		$stmt->bindValue(2, $sendTo);
 		$success = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $success;
 	}
 
@@ -61,16 +64,17 @@
 				WHERE toUserID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($fromUserID);
+		$stmt->bindValue(1, $userid);
 		$success = $stmt->execute();
+		$row = $stmt->fetch();
 		// Array to store received friend requests
 		$requestsReceived = array();
 		
-		while ($stmt->fetch()) {
+		while ($row != null) {
 			$requestsReceived[] = $fromUserID;
+			$row = $stmt->fetch();
 		}
-		$stmt->close();
+		$stmt->closeCursor();
 		return $requestsReceived;
 	}
 
@@ -82,15 +86,16 @@
 				WHERE fromUserID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($toUserID);
+		$stmt->bindValue(1, $userid);
 		$success = $stmt->execute();
+		$row = $stmt->fetch();
 		$requestsSent = array();
 		
-		while ($stmt->fetch()) {
+		while ($row != null) {
 			$requestsSent[] = $toUserID;
+			$row = $stmt->fetch();
 		}
-		$stmt->close();
+		$stmt->closeCursor();
 		return $requestsSent;
 	}
 
@@ -104,10 +109,12 @@
 
 		$stmt = $db->prepare($query);
 		$stmt->bind_param("ii", $userid, $ofUserID);
-		$stmt->bind_result($fromUID);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $ofUserID);
 		$stmt->execute();
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$fromUID = $row['fromUserID'];
+		$stmt->closeCursor();
 
 		// If There exist any request, then $fromUID must contain some value
 		if ($fromUID) {
@@ -120,27 +127,30 @@
 					WHERE toUserID = ? AND fromUserID = ?";
 
 			$stmt = $db->prepare($query);
-			$stmt->bind_param("ii",$userid, $ofUserID);
+			$stmt->bindValue(1, $userid);
+			$stmt->bindValue(2, $ofUserID);
 			$stmt->execute();
-			$stmt->close(); 
+			$stmt->closeCursor(); 
 
 			$query = "INSERT INTO friends
 					(userID, friendID)
 					VALUES
 					(?, ?)";
 			$stmt = $db->prepare($query);
-			$stmt->bind_param("ii", $userid, $ofUserID);
+			$stmt->bindValue(1, $userid);
+			$stmt->bindValue(2, $ofUserID);
 			$stmt->execute();
-			$stmt->close();
+			$stmt->closeCursor();
 
 			$query = "INSERT INTO friends
 					(userID, friendID)
 					VALUES
 					(?, ?)";
 			$stmt = $db->prepare($query);
-			$stmt->bind_param("ii", $ofUserID, $userid);
+			$stmt->bindValue(1, $ofUserID);
+			$stmt->bindValue(2, $userid);
 			$stmt->execute();
-			$stmt->close();
+			$stmt->closeCursor();
 		}
 
 	}
@@ -154,11 +164,12 @@
 				WHERE toUserID = ? AND fromUserID = ?";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ii", $userid, $ofUserID);
-		$stmt->bind_result($fromUID);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $ofUserID);
 		$stmt->execute();
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$fromUID = $row['fromUserID'];
+		$stmt->closeCursor();
 
 		/* now, if there exists such a request, then $fromUID will have
 		 * some value.
@@ -168,10 +179,12 @@
 			// Remove such a friend request entry from friend_requests table
 			$query = "DELETE FROM friend_requests
 					WHERE toUserID = ? AND fromUserID = ?";
+			
 			$stmt = $db->prepare($query);
-			$stmt->bind_param("ii", $userid, $ofUserID);
+			$stmt->bindValue(1, $userid);
+			$stmt->bindValue(2, $ofUserID);
 			$stmt->execute();
-			$stmt->close();
+			$stmt->closeCursor();
 		}
 	}
 
@@ -186,11 +199,12 @@
 				WHERE toUserID = ? AND fromUserID = ?";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ii", $toUserID, $userid);
-		$stmt->bind_result($fromUID);
+		$stmt->bindValue(1, $toUserID);
+		$stmt->bindValue(2, $userid);
 		$stmt->execute();
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$fromUID = $row['fromUserID'];
+		$stmt->closeCursor();
 
 		// If $fromUID is true..
 		if ($fromUID) {
@@ -199,9 +213,10 @@
 					WHERE toUserID = ? AND fromUserID = ?";
 			
 			$stmt = $db->prepare($query);
-			$stmt->bind_param("ii", $toUserID, $userid);
+			$stmt->bindValue(1, $toUserID);
+			$stmt->bindValue(2, $userid);
 			$stmt->execute();
-			$stmt->close();
+			$stmt->closeCursor();
 		}
 	}
 
@@ -215,7 +230,12 @@
 
 		$stmt = $db->prepare($query);
 		$stmt->bind_param("iiii", $userid, $friendID, $friendID, $userid);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $friendID);
+		$stmt->bindValue(3, $friendID);
+		$stmt->bindValue(4, $userid);
 		$success = $stmt->execute();
+		$stmt->closeCursor;
 		return $success;	
 	}
 	
@@ -226,11 +246,12 @@
 			WHERE fromUserID = ? AND toUserID = ?";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ii", $userid, $toUserID);
-		$stmt->bind_result($total);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $toUserID);
 		$stmt->execute();
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$total = $row['total'];
+		$stmt->closeCursor();
 
 		if ($total > 0) {
 			return true;
@@ -247,10 +268,15 @@
 					(userID = ? AND friendID = ?)";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("iiii", $userid, $ofuserid, $ofuserid, $userid);
-		$stmt->bind_result($total);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $ofuserid);
+		$stmt->bindValue(3, $ofuserid);
+		$stmt->bindValue(4, $userid);
+
 		$stmt->execute();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$isFriend = $row['total'];
+		$stmt->closeCursor();
 
 		if ($isFriend > 0) {
 			return true;

@@ -27,11 +27,10 @@
 			WHERE emailAddress = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("s", $email);
-		$stmt->bind_result($userid);
+		$stmt->bindValue("1", $email);
 		$stmt->execute();
 		$row = $stmt->fetch();
-		$stmt->close();
+		$userid = $row['userID'];
 		return $userid;
 	}
 
@@ -43,11 +42,18 @@
 		(emailAddress, password, firstName, lastName, gender, birthday)
 		VALUES
 		(?, ?, ?, ?, ?, ?)";
-
+		
+		// Prepare SQL statement
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ssssss", $email, $password, $fname, $lname, $gender, $dob);
+		// Bind values
+		$stmt->bindValue(1, $email);
+		$stmt->bindValue(2, $password);
+		$stmt->bindValue(3, $fname);
+		$stmt->bindValue(4, $lname);
+		$stmt->bindValue(5, $gender);
+		$stmt->bindValue(6, $dob);
 		$success = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $success;
 	}
 
@@ -62,53 +68,51 @@
 			WHERE userID = ?";	
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($emailAddress, $firstName, $lastName,
-				$pic, $gender, $birthday, $education, $languages, $country,
-				$state, $city, $status, $mobile, $website);
+		$stmt->bindValue(1, $userid);
+		//$stmt->bind_result($emailAddress, $firstName, $lastName,
+		//		$pic, $gender, $birthday, $education, $languages, $country,
+		//		$state, $city, $status, $mobile, $website);
 		$stmt->execute();
 		
 		$row = $stmt->fetch();
-		$stmt->close();
+		$stmt->closeCursor();
 		$profile = array();
-		$profile['emailAddress'] = $emailAddress; 
-		$profile['fname'] = $firstName; 
-		$profile['lname'] = $lastName; 
-		$profile['pic'] = $pic; 
-		$profile['gender'] = $gender; 
-		$profile['birthday'] = $birthday; 
-		$profile['education'] = $education; 
-		$profile['languages'] = $languages; 
-		$profile['country'] = $country; 
-		$profile['state'] = $state; 
-		$profile['city'] = $city; 
-		$profile['status'] = $status; 
-		$profile['mobile'] = $mobile; 
-		$profile['website'] = $website; 
+		$profile['emailAddress'] = $row['emailAddress']; 
+		$profile['fname'] = $row['firstName']; 
+		$profile['lname'] = $row['lastName']; 
+		$profile['pic'] = $row['pic']; 
+		$profile['gender'] = $row['gender']; 
+		$profile['birthday'] = $row['birthday']; 
+		$profile['education'] = $row['education']; 
+		$profile['languages'] = $row['languages']; 
+		$profile['country'] = $row['country']; 
+		$profile['state'] = $row['state']; 
+		$profile['city'] = $row['city']; 
+		$profile['status'] = $row['status']; 
+		$profile['mobile'] = $row['mobile']; 
+		$profile['website'] = $row['website']; 
 		return $profile;
 	}
 
 	function getUserName($userid) {	
+
 		global $db;	
 		$query = "SELECT firstName, lastName 
 			FROM users 
 			WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		if (!$stmt) {
-			echo "<p>" . mysqli_error($db) . "</p>";
-			exit(0);
-		}
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($firstName, $lastName);
+		
+		$stmt->bindValue(1, $userid);
 		$stmt->execute();
 		// Fetch result
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		
+		$stmt->closeCursor();
 		// Create an array to store first, last names
 		$userName = array();
-		$userName['fname'] = $firstName;
-		$userName['lname'] = $lastName;
+		$userName['fname'] = $row['firstName'];
+		$userName['lname'] = $row['lastName'];
 		return $userName;
 	}
 
@@ -121,9 +125,11 @@
 				WHERE userID = ?" ;
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("si", $password, $userid);
+		$stmt->bindValue(1, $password);
+		$stmt->bindValue(2, $userid);
+		
 		$result = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $result;
 	}
 
@@ -143,10 +149,18 @@
 				WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("sssssssi", $fname, $lname, $city, $birthday,
-				$status, $education, $languages, $userid);
+		
+		$stmt->bindValue(1, $fname);
+		$stmt->bindValue(2, $lname);
+		$stmt->bindValue(3, $city);
+		$stmt->bindValue(4, $birthday);
+		$stmt->bindValue(5, $status);
+		$stmt->bindValue(6, $education);
+		$stmt->bindValue(7, $languages);
+		$stmt->bindValue(8, $userid);
+		
 		$result = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $result;
 	}
 
@@ -165,10 +179,17 @@
 				WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ssssssi", $city, $country, $state, $email, 
-				$website, $mobile, $userid);
+		
+		$stmt->bindValue(1, $city);
+		$stmt->bindValue(2, $country);
+		$stmt->bindValue(3, $state);
+		$stmt->bindValue(4, $email);
+		$stmt->bindValue(5, $website);
+		$stmt->bindValue(6, $mobile);
+		$stmt->bindValue(7, $userid);
+		
 		$result = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $result;
 	}
 
@@ -180,11 +201,11 @@
 				WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($password);
+		$stmt->bindValue(1, $userid);
 		$stmt->execute();
 		$row = $stmt->fetch();
-		$stmt->close();
+		$stmt->closeCursor();
+		$password = $row['password'];
 		return $password;
 	}
 
@@ -196,11 +217,11 @@
 				WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($imagepath);
+		$stmt->bindValue(1, $userid);
 		$stmt->execute();
-		$result = $stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
+		$imagepath = $row['pic'];
 		return $imagepath;
 	}
 
@@ -213,8 +234,11 @@
 				WHERE userID = ?";
 		$stmt = $db->prepare($query);
 		$stmt->bind_param("si", $newpath, $userid);
+		$stmt->bindValue(1, $newpath);
+		$stmt->bindValue(2, $userid);
+
 		$success = $stmt->execute();
-		$stmt->close();
+		$stmt->closeCursor();
 		return $success;
 	}
 
@@ -226,8 +250,9 @@
 				WHERE userID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
+		$stmt->bindValue(1, $userid);
 		$success = $stmt->execute();
+		$stmt->closeCursor;
 		return $success;
 	}
 	
@@ -239,16 +264,16 @@
 				WHERE userID = ?";
 		
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("i", $userid);
-		$stmt->bind_result($city, $birthday);
+		$stmt->bindValue(1, $userid);
 		$success = $stmt->execute();
-		$stmt->fetch();
-		$stmt->close();
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
 
 		$result = array();
-		$result['city'] = $city;
+		$result['city'] = $row['city'];
+		$birthday = $row['birthday'];
 		$year = substr($birthday, 0, 4);
-		$result['age'] = 2012 - $year;
+		$result['age'] = date('Y') - $year;
 		
 		return $result;
 	}

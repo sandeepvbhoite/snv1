@@ -33,7 +33,12 @@
 			$firstpart = substr($query, 0, $space);
 			$secondpart = substr($query, $i);
 		endif;
-	
+		
+		/* saving search query in $q to avoid confusion while dealing with
+		 * the SQL statements.
+		 */
+		$q = $query;
+
 		/* Now we need to search $firstpart both in firstName and lastName, 
 		same for the $secondpart And the same for pages also.. 
 		In case of pages, we are saving just a 'name' in the database, 
@@ -46,49 +51,70 @@
 		*/
 		
 		if ($firstpart):
+			
 			$query = "SELECT userID, firstName, lastName, pic FROM users
 				WHERE 
-				(firstName LIKE '$firstpart' OR lastName LIKE '$firstpart') OR
-				(firstName LIKE '$secondpart' OR lastName LIKE '$secondpart')";
-			$success = $db->query($query);
-			$total = $success->num_rows;
+				(firstName LIKE ? OR lastName LIKE ?) OR
+				(firstName LIKE ? OR lastName LIKE ?)";
+			
+			// Prepare SQL statements
+			$stmt = $db->prepare($query);
+			$stmt->bindValue(1, $firstpart);
+			$stmt->bindValue(2, $firstpart);
+			$stmt->bindValue(3, $secondpart);
+			$stmt->bindValue(4, $secondpart);
+
+			$success = $stmt->execute();
+			$row = $stmt->fetch();
 			$results = array();
-			for ($i=0; $i<$total; $i++):
-				$row = $success->fetch_assoc();
-				$results[$i] = array();
-				$results[$i]['userID'] = $row['userID'];
-				$results[$i]['fname'] = $row['firstName'];
-				$results[$i]['lname'] = $row['lastName'];
-				$results[$i]['pic'] = $row['pic'];
+			$result = array();
+			while ($row != null):
+				$result['userID'] = $row['userID'];
+				$result['fname'] = $row['firstName'];
+				$result['lname'] = $row['lastName'];
+				$result['pic'] = $row['pic'];
 				$tmp = getCityAndAge($row['userID']);
-				$results[$i]['city'] = $tmp['city'];
-				$results[$i]['age'] = $tmp['age'];
-			endfor;
-			$success->free();
+				$result['city'] = $tmp['city'];
+				$result['age'] = $tmp['age'];
+				// put this $result in $results
+				$results[] = $result;
+				// fetch next row from the result set
+				$row = $stmt->fetch();
+			endwhile;
+			$stmt->closeCursor();
 			return $results;
 		else:
 			$query = "SELECT userID, firstName, lastName, pic FROM users
 				WHERE 
-				(firstName LIKE '$query' OR lastName LIKE '$query')";
-			$success = $db->query($query);
-			$total = $success->num_rows;
+				(firstName LIKE ? OR lastName LIKE ?)";
+			
+			$stmt = $db->prepare($query);
+			$stmt->bindValue(1, $q);
+			$stmt->bindValue(2, $q);
+			$stmt->execute();
+			// Get first row from the result set
+			$row = $stmt->fetch();
 			$results = array();
-			for ($i=0; $i<$total; $i++):
-				$row = $success->fetch_assoc();
-				$results[$i] = array();
-				$results[$i]['userID'] = $row['userID'];
-				$results[$i]['fname'] = $row['firstName'];
-				$results[$i]['lname'] = $row['lastName'];
-				$results[$i]['pic'] = $row['pic'];
+			$result = array();
+			while ($row != null):
+				
+				$result['userID'] = $row['userID'];
+				$result['fname'] = $row['firstName'];
+				$result['lname'] = $row['lastName'];
+				$result['pic'] = $row['pic'];
 				$tmp = getCityAndAge($row['userID']);
-				$results[$i]['city'] = $tmp['city'];
-				$results[$i]['age'] = $tmp['age'];
+				$result['city'] = $tmp['city'];
+				$result['age'] = $tmp['age'];
+				// Now put this single result in $results
+				$results[] = $result;
+				// fetch next row
+				$row = $stmt->fetch();
 
-			endfor;
-			$success->free();
+			endwhile;
+			// Release statement
+			$stmt->closeCursor();
 			return $results;
 		endif;
-	/* Okay, decided to write another function to search from pages. */
 	}
 	
 	function searchPages($query) {
@@ -106,32 +132,47 @@
 		endif;
 
 		if ($firstpart):
+			
 			$query = "SELECT pageID, name FROM pages
-					WHERE name LIKE '%$firstpart%' OR name LIKE '%$secondpart%'";
-			$success = $db->query($query);
-			$total = $success->num_rows;
+					WHERE name LIKE '%?%' OR name LIKE '%?%'";
+			
+			$stmt = $db->prepare($query);
+			$stmt->bindValue(1, $firstpart);
+			$stmt->bindValue(2, $secondpart);
+			$stmt->execute();
+			$row = $stmt->fetch();
+
 			$results = array();
-			for ($i=0; $i<$total; $i++):
-				$results[$i] = array();
-				$row = $success->fetch_assoc();
-				$results[$i]['pageID'] = $row['pageID'];
-				$results[$i]['name'] = $row['name'];
-			endfor;
-			$success->free();
+			$result = array();
+			
+			while ($row != null):
+				$result['pageID'] = $row['pageID'];
+				$result['name'] = $row['name'];
+				// Store this result in $results
+				$results[] = $result;
+				// Fetch next row
+				$row = $stmt->fetch();
+			endwhile;	
+			$stmt->closeCursor();
 			return $results;
+		
 		else:
 			$query = "SELECT pageID, name FROM pages
-					WHERE name LIKE '%$query%'";
-			$success = $db->query($query);
-			$total = $success->num_rows;
+					WHERE name LIKE '%?%'";
+			
+			$stmt = $db->prepare($query);
+			$stmt->bindValue(1, $q);
+			$success = $stmt->execute();
+			$row = $stmt->fetch();
 			$results = array();
-			for ($i=0; $i<$total; $i++):
-				$results[$i] = array();
-				$row = $success->fetch_assoc();
-				$results[$i]['pageID'] = $row['pageID'];
-				$results[$i]['name'] = $row['name'];
-			endfor;
-			$success->free();
+			$result = array();
+			while ($row != null):
+				$result['pageID'] = $row['pageID'];
+				$result['name'] = $row['name'];
+				$results[] = $result;
+				$row = $stmt->fetch();
+			endwhile;
+			$stmt->closeCursor();
 			return $results;
 		endif;
 		
