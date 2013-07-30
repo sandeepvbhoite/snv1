@@ -58,6 +58,7 @@
 			}
 		} else if ($action == 'newpost') {
 			$post = $_POST['status'];
+			$post = stripslashes($post);
 			$success = postNew($userid, $post);
 			header('Location: .');
 
@@ -74,7 +75,7 @@
 				$name = $_SESSION['userid'] . $original_name;
 				$name = $path . $name;
 				$success = move_uploaded_file($tmp_name, $name);
-				$postText = $_POST['status'];
+				$postText = stripslashes($_POST['status']);
 				$success = newImagePost($_SESSION['userid'], $name, $postText);
 				if ($success) {
 					header('Location: index.php?action=imagepost');
@@ -94,7 +95,7 @@
 
 
 		} else if ($action == 'comment') {
-			$comment = $_POST['comment'];
+			$comment = stripslashes($_POST['comment']);
 			$postID = $_POST['postID'];
 			$success = commentOnPost($userid, $postID, $comment);
 			$tmp = 'Location: .' . "#$postID";
@@ -116,7 +117,7 @@
 
 
 		} else if ($action == 'commentonpage') {
-			$comment = $_POST['comment'];
+			$comment = stripslashes($_POST['comment']);
 			$pagepostID = $_POST['pagepostID'];
 			$success = commentOnPagePost($userid, $pagepostID, $comment);
 			$tmp = 'Location: .?action=changestream&stream=2' . "#$pagepostID";

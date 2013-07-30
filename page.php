@@ -24,67 +24,9 @@
    <div id="main">
 		<?php include('view/panel.html'); ?>            
          <div id="page">
-         <div id="vertical">
-                             <!-- pages liked -->                   
-                     <div id="pages_label1">
-                           <p>Pages Liked</p>
-                     </div>
-			 <!--page list starts here -->
-			 <?php if ($pagesLiked): ?>
+  
 
-			 <?php $total = count($pagesliked); ?>
-			 <?php foreach ($pagesL as $index => $pageL):
-			 			$page_name = $pageL['page_name'];
-						$page_ID = $pageL['page_ID'];
-			 ?>
-                    <a href="pages.php?action=showpage&id=<?php echo $page_ID; ?>"><div class="page-list">
-                               <img src="images/page-icon.png" width="15" height="15"/>
-                               <p><?php echo $page_name; ?></p>
-                               </div>
-                    </a>
-			<?php endforeach ?>
-			<?php else: ?>
-					<div class="page_list">
-						<p> This user has not liked any pages yet</p>
-					</div>
-			<?php endif; ?>
-                         <!-- pages you own -->
-                     <div id="pages_label2">
-                           <p>Pages You Own</p>
-                     </div>	
-                            <!--page list starts here -->
-			<?php if ($pagesOwned): ?>
-			<?php $total = count($pagesOwned); ?>
-			<?php foreach ($pagesO as $index => $pageO):
-					$page_name = $pageO['page_name'];
-					$page_ID = $pageO['page_ID'];
-			?>
-                     <a href="pages.php?action=showpage&id=<?php echo $page_ID; ?>"><div class="page-list">
-                                <img src="images/page-icon.png" width="15" height="15"/>
-                                <p><?php echo $page_name; ?></p>
-                                </div>
-                     </a>
-			<?php endforeach; ?>
-			<?php else: ?>
-				<div class="page_list">
-					<p>This user doesn't own any pages</p>
-				</div>
-			<?php endif; ?>
-                        <!-- create new page-->
-                     <a href="pages.php"><div id="pages_label3">
-                                <p>Create New Page</p>
-                                </div>                     
-                     </a>  
-                                 
-                     </div>   <!--vertical ends-->
-
-
-
-
-
-
-
-
+				<?php include('verticalBar.php'); ?>
 
             <div id="page_info">
             			<img src="<?php echo $pagepic; ?>" alt="" width="150" height="150"/>
@@ -209,36 +151,8 @@
 
 									<?php endforeach; ?>
 
-<!--
 
-
-
-			              <div class="post">
-			                      <div class="pdata">
-                                      <div class="entry">
-                                             <a href="#" class="puser"><p>Page Owner</p></a>
-                                             <div id="postbox"><p> ganpati bappa morya !! jai ganesh deva !</p><img src="bappa.jpg" alt="" height="300"width="300"></div>
-                                             <div class="bottom-bar">
-				                                       <div id="bottom_post">
-				                                             <p> Friday, 28 Sept.2012</p><p>5:30 pm</p>
-					                                          <p>&nbsp;&nbsp;.&nbsp;&nbsp;<a href="#" title="Like this post">Like</a>&nbsp;.</p>
-					                                          <p><a href="#" title="">Comment</a>&nbsp;</p>
-					                                    </div>
-					                                    <div id="likes" ><p>10 people likes this</p></div>
-					                                    <div class="comments"><img src="profile.jpg"alt="name" height="30" width="30"/><a href="" class="cuser"><p>Sandeep Bhoite</p></a><p>Ganpati Bappa Morya !!!</p>
-					                                           <div id="bottom_post">
-				                                                   <p> Friday, 28 Sept.2012 &nbsp;6:30 pm</p>
-					                                                
-					                                           </div>
-					                                    </div> 
-                                                   <div id="comment_box">
-				                                             <p><img src="profile.jpg"alt="name" height="30" width="30"/><form action="#" method="post"><input type="text" name="comment" class="comment" value="write your comment here..."/></form></p>
-				                                       </div> 				                            
-				                                 </div>    
-				                           </div>			                 
-			                      </div>
-			              </div> 
-	-->		         </div>
+		         </div>
                    
              </div>    <!-- page stream closed-->
 		<?php include('view/footer.html'); ?>             
