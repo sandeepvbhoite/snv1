@@ -18,164 +18,263 @@
 # MA 02110-1301, USA.
 ?><?php
 	$db = database::getDB();	
+
 	function getuserID($email) {
+	
 		global $db;
+
 		$query = "SELECT userID from users
-			WHERE emailAddress = '$email'";
-		$result = $db->query($query);
-		$row = $result->fetch_assoc();
+			WHERE emailAddress = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue("1", $email);
+		$stmt->execute();
+		$row = $stmt->fetch();
 		$userid = $row['userID'];
-		$result->free();
 		return $userid;
 	}
 
 	function createUser($fname, $lname, $dob, $gender, $email, $password) {
+		
 		global $db;
+
 		$query = "INSERT INTO users
 		(emailAddress, password, firstName, lastName, gender, birthday)
 		VALUES
-		('$email', '$password', '$fname', '$lname', '$gender', '$dob')";
-		$success = $db->query($query);
+		(?, ?, ?, ?, ?, ?)";
+		
+		// Prepare SQL statement
+		$stmt = $db->prepare($query);
+		// Bind values
+		$stmt->bindValue(1, $email);
+		$stmt->bindValue(2, $password);
+		$stmt->bindValue(3, $fname);
+		$stmt->bindValue(4, $lname);
+		$stmt->bindValue(5, $gender);
+		$stmt->bindValue(6, $dob);
+		$success = $stmt->execute();
+		$stmt->closeCursor();
 		return $success;
 	}
 
 	function getProfile($userid) {
+
 		global $db;
-		$query = "SELECT * FROM users
-			WHERE userID = '$userid'";	
-		$success = $db->query($query);
-		$total = $success->num_rows;
+
+		$query = "SELECT emailAddress, firstName, lastName,
+			pic, gender, birthday, education, languages, country, state,
+			city, status, mobile, website 
+			FROM users
+			WHERE userID = ?";	
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		//$stmt->bind_result($emailAddress, $firstName, $lastName,
+		//		$pic, $gender, $birthday, $education, $languages, $country,
+		//		$state, $city, $status, $mobile, $website);
+		$stmt->execute();
+		
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
 		$profile = array();
-		$row = $success->fetch_assoc();
-		$profile['emailAddress'] = $row['emailAddress'];
-		$profile['fname'] = $row['firstName'];
-		$profile['lname'] = $row['lastName'];
-		$profile['pic'] = $row['pic'];
-		$profile['gender'] = $row['gender'];
-		$profile['birthday'] = $row['birthday'];
-		$profile['education'] = $row['education'];
-		$profile['languages'] = $row['languages'];
-		$profile['country'] = $row['country'];
-		$profile['state'] = $row['state'];
-		$profile['city'] = $row['city'];
-		$profile['status'] = $row['status'];
-		$profile['mobile'] = $row['mobile'];
-		$profile['website'] = $row['website'];
-		$success->free();	
+		$profile['emailAddress'] = $row['emailAddress']; 
+		$profile['fname'] = $row['firstName']; 
+		$profile['lname'] = $row['lastName']; 
+		$profile['pic'] = $row['pic']; 
+		$profile['gender'] = $row['gender']; 
+		$profile['birthday'] = $row['birthday']; 
+		$profile['education'] = $row['education']; 
+		$profile['languages'] = $row['languages']; 
+		$profile['country'] = $row['country']; 
+		$profile['state'] = $row['state']; 
+		$profile['city'] = $row['city']; 
+		$profile['status'] = $row['status']; 
+		$profile['mobile'] = $row['mobile']; 
+		$profile['website'] = $row['website']; 
 		return $profile;
 	}
 
-	function getUserName($userid) {
-		global $db;
-		$query = "SELECT firstName, lastName FROM users
-				WHERE userID = '$userid'";
-		$result = $db->query($query);
-		$tmp    = $result->fetch_assoc();
+	function getUserName($userid) {	
+
+		global $db;	
+		$query = "SELECT firstName, lastName 
+			FROM users 
+			WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		
+		$stmt->bindValue(1, $userid);
+		$stmt->execute();
+		// Fetch result
+		$row = $stmt->fetch();
+		
+		$stmt->closeCursor();
+		// Create an array to store first, last names
 		$userName = array();
-		$userName['fname'] = $tmp['firstName'];
-		$userName['lname'] = $tmp['lastName'];
-		$result->free();
+		$userName['fname'] = $row['firstName'];
+		$userName['lname'] = $row['lastName'];
 		return $userName;
 	}
 
 	function changePassword ($userid, $password) {
+	
 		global $db;
+		
 		$query = "UPDATE users 
-				SET password = '$password'
-				WHERE userID =  '$userid'" ;
-		$result = $db->query($query);
+				SET password = ?
+				WHERE userID = ?" ;
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $password);
+		$stmt->bindValue(2, $userid);
+		
+		$result = $stmt->execute();
+		$stmt->closeCursor();
 		return $result;
 	}
 
-	function updatePersonalInfo ($userid, $fname, $lname, $city, $birthday, $status, $education, $languages) {
+	function updatePersonalInfo ($userid, $fname, $lname, $city, $birthday, 
+			$status, $education, $languages) {
+
 		global $db;
+
 		$query = "UPDATE users
-				SET firstName = '$fname',
-					lastName  = '$lname',
-					city      = '$city',
-					birthday  = '$birthday',
-					status    = '$status',
-					education = '$education',
-					languages = '$languages'
-				WHERE userID = '$userid'";
-		$result = $db->query($query);
+				SET firstName = ?,
+					lastName  = ?,
+					city      = ?,
+					birthday  = ?,
+					status    = ?,
+					education = ?,
+					languages = ?
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		
+		$stmt->bindValue(1, $fname);
+		$stmt->bindValue(2, $lname);
+		$stmt->bindValue(3, $city);
+		$stmt->bindValue(4, $birthday);
+		$stmt->bindValue(5, $status);
+		$stmt->bindValue(6, $education);
+		$stmt->bindValue(7, $languages);
+		$stmt->bindValue(8, $userid);
+		
+		$result = $stmt->execute();
+		$stmt->closeCursor();
 		return $result;
 	}
 
-	function updateContactInfo ($userid, $city, $state, $country, $email, $website, $mobile) {
+	function updateContactInfo ($userid, $city, $state, $country, $email, 
+			$website, $mobile) {
+
 		global $db;
+
 		$query = "UPDATE users
-				SET city = '$city',
-					country = '$country',
-					state = '$state',
-					emailAddress = '$email',
-					website = '$website',
-					mobile = '$mobile'
-				WHERE userID = '$userid'";
-		$result = $db->query($query);
+				SET city = ?,
+					country = ?,
+					state = ?,
+					emailAddress = ?,
+					website = ?,
+					mobile = ?
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		
+		$stmt->bindValue(1, $city);
+		$stmt->bindValue(2, $country);
+		$stmt->bindValue(3, $state);
+		$stmt->bindValue(4, $email);
+		$stmt->bindValue(5, $website);
+		$stmt->bindValue(6, $mobile);
+		$stmt->bindValue(7, $userid);
+		
+		$result = $stmt->execute();
+		$stmt->closeCursor();
 		return $result;
 	}
 
 	function currentPassword ($userid) {
+		
 		global $db;
+
 		$query = "SELECT password FROM users
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
-		$row = $success->fetch_assoc();
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$stmt->execute();
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
 		$password = $row['password'];
 		return $password;
 	}
 
 	function getCurrentProfilePic($userid) {
+		
 		global $db;
+
 		$query = "SELECT pic FROM users
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
-		$row = $success->fetch_assoc();
-		$image_path = $row['pic'];
-		return $image_path;
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$stmt->execute();
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
+		$imagepath = $row['pic'];
+		return $imagepath;
 	}
 
 	function changeProfilePic ($userid, $newPath) {
+
 		global $db;
-/*		$query = "INSERT INTO images
-				(userID, imagePath)
-				VALUES
-				('$userid', '$newPath')";
-		$success = $db->query($query);
-		$query = "SELECT imagePath FROM images
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
-		$row = $success->fetch_assoc();
-		$newpic = $row['imagePath'];
-*/
+
 		$query = "UPDATE users
-				SET pic = '$newPath'
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
+				SET pic = ?
+				WHERE userID = ?";
+		$stmt = $db->prepare($query);
+		$stmt->bind_param("si", $newpath, $userid);
+		$stmt->bindValue(1, $newpath);
+		$stmt->bindValue(2, $userid);
+
+		$success = $stmt->execute();
+		$stmt->closeCursor();
 		return $success;
 	}
 
 	function removeProfilePic ($userid) {
+
 		global $db;
+
 		$query = "UPDATE users SET pic = 'sample.png'
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$success = $stmt->execute();
+		$stmt->closeCursor;
 		return $success;
 	}
 	
 	function getCityAndAge($userid) {
+		
 		global $db;
+		
 		$query = "SELECT city, birthday FROM users
-				WHERE userID = '$userid'";
-		$success = $db->query($query);
+				WHERE userID = ?";
+		
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$success = $stmt->execute();
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
+
 		$result = array();
-		$row = $success->fetch_assoc();
 		$result['city'] = $row['city'];
 		$birthday = $row['birthday'];
 		$year = substr($birthday, 0, 4);
-		$result['age'] = 2012 - $year;
-		$success->free();
+		$result['age'] = date('Y') - $year;
+		
 		return $result;
 	}
 ?>

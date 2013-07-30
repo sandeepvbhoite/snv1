@@ -18,37 +18,46 @@
 # MA 02110-1301, USA.
 ?>
 <?php
+	// Start a new session
 	session_start();
+
 	/* Get database class from model/database.php */
 	require_once('model/database.php');
+	// Get database connection
 	$db = database::getDB();
+
 	if ( (!isset($_POST['email'])) || (!isset($_POST['password'])) ):
 		$error = "Please enter valid data!";
 		include ('logina.php');
+	
 	else:
-	$email = $_POST['email'];
-	$password  = $_POST['password'];
-	$query = "SELECT emailAddress, password, userID  FROM users
-			WHERE emailAddress = '$email' AND password = '$password'";
-	$result = $db->query($query);
-	if ($result == false) {
-		echo "<p>error connecting db</p>";
-		exit();
-	}
-
-	$row = $result->num_rows;
-	if ($row < 1) {
-		$error = "Wrong email, password combo! Please try again!";
-		include('logina.php');
-	} else {
-		$user = $result->fetch_assoc();
-		if ($password == $user['password']) {
-			if (!isset($_SESSION['userid'])) {
-				$_SESSION['userid'] = $user['userID'];
-			}
-			header('Location: .');
+		$email = $_POST['email'];
+		$password  = $_POST['password'];
+		$query = "SELECT emailAddress, password, userID  FROM users
+				WHERE emailAddress = ? AND password = ?";
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $email);
+		$stmt->bindValue(2, $password);
+		$result = $stmt->execute();
+		if ($result == false) {
+			echo "<p>error</p>";
+			exit();
 		}
-	}
-
-	endif;
+		
+		$row = $stmt->fetch();
+		$stmt->closeCursor();
+		if ($row < 1) {
+			$error = "Invalid email or password. Please try again!";
+			include('logina.php');
+		} else {
+			//$user = $result->fetch_assoc();
+			if ($password == $row['password']) {
+				if (!isset($_SESSION['userid'])) {
+					$_SESSION['userid'] = $row['userID'];
+				}
+				header('Location: .');
+			}
+		}
+	
+		endif;
 ?>	

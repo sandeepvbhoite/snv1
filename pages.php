@@ -61,7 +61,7 @@
 			$pageID  = $_POST['pageID'];
 			$isOwner = isOwner($userid, $pageID);
 			if ($isOwner) {
-				$success = postOnPage($pageID, $newpost);
+				$success = postOnPage($pageID, stripslashes($newpost));
 				include ('pageposts.php');
 				include ('sidebar.php');
 				include ('page.php');
@@ -84,7 +84,7 @@
 				$name = $_SESSION['userid'] . $original_name;
 				$name = $path . $name;
 				$success = move_uploaded_file($tmp_name, $name);
-				$postText = $_POST['status'];
+				$postText = stripslashes($_POST['status']);
 				$success = newImagePostOnPage($pageID, $name, $postText);
 				if ($success) {
 					$path = 'Location: pages.php?action=topicpost&id=' . $pageID;
@@ -107,7 +107,7 @@
 			include ('page.php');
 			
 		} else if ($action == 'comment') {
-			$comment = $_POST['comment'];
+			$comment = stripslashes($_POST['comment']);
 			$postID  = $_POST['postID'];
 			$pageID = $_POST['pageID'];
 			$success = commentOnPagePost($userid, $postID, $comment);
@@ -126,18 +126,18 @@
 			}
 		} else if ($action == 'createpageceleb') {
 			$type = 1;
-			$about = $_POST['about'];
-			$name = $_POST['name'];
+			$about = stripslashes($_POST['about']);
+			$name = stripslashes($_POST['name']);
 			$year  = $_POST['year'];
 			$month = $_POST['month'];
 			$day = $_POST['day'];
-			$city = $_POST['city'];
-			$state = $_POST['state'];
-			$country = $_POST['country'];
+			$city = stripslashes($_POST['city']);
+			$state = stripslashes($_POST['state']);
+			$country = stripslashes($_POST['country']);
 			$website = $_POST['website'];
 			$telephone = $_POST['telephone'];
 			$email = $_POST['email'];
-			$history = $_POST['history'];
+			$history = stripslashes($_POST['history']);
 			$birthday = $year . '-' . $month . '-' . $day;
 			/* Let's get that uploaded image */
 			if (isset($_FILES['pic'])) {
@@ -149,7 +149,8 @@
 				$newname = $path . $newname;
 				$success = move_uploaded_file($tmp_name, $newname);
 			}
-			$pageID = createCelebPage($userid, $about, $name, $newname, $birthday, $city, $state, $country, $website, $telephone, $email, $history);
+			$pageID = createCelebPage($userid, $about, $name, $newname, $birthday, 
+					$city, $state, $country, $website, $telephone, $email, $history);
 			if ($type == '2') {
 				$pagename = getPageName($pageID);
 			} else {
@@ -186,7 +187,8 @@
 				$success = move_uploaded_file($tmp_name, $newname);
 			}
 
-			$pageID = createCorpPage($userid, $name, $newname, $about, $date, $product, $city, $state, $country, $website, $tele, $email, $history);
+			$pageID = createCorpPage($userid, $name, $newname, $about, $date, $product, 
+					$city, $state, $country, $website, $tele, $email, $history);
 			include ('pageposts.php');
 			include ('sidebar.php');
 			include ('page.php');
