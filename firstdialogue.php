@@ -27,28 +27,6 @@
                <div id="message-dialogue">
                      <fieldset>
                              	<ol>
-
-                               <!--   <li>
-                                       <div class="dialogue_entry">
-                                               <img src="profile.jpg"alt="name" height="40" width="40"/>
-                                               <a href="" class=""><p>Er.Kautilay Jha</p></a>
-                                               <p class="dialogue-data">Iam fi9, What About u?</p>
-					                                <div id="bottom_post">
-				                                        <p> Friday, 28 Sept.2012 &nbsp;6:35 pm</p>
-					                                </div>
-					                         </div> 
-                                 </li> 
-                                  <li>
-                                       <div class="dialogue_entry">
-                                               <img src="profile.jpg"alt="name" height="40" width="40"/>
-                                               <a href="" class=""><p>Sandeep Bhoite</p></a>
-                                               <p class="dialogue-data">Coooooll , so what r u up to ? </p>
-					                                <div id="bottom_post">
-				                                        <p> Friday, 28 Sept.2012 &nbsp;6:37 pm</p>
-					                                </div>
-					                         </div> 
-                                 </li>
-							-->
                              <p>Send your first message to this user!</p>                   	
                            	</ol>
                            	<ol>

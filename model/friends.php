@@ -71,7 +71,7 @@
 		$requestsReceived = array();
 		
 		while ($row != null) {
-			$requestsReceived[] = $fromUserID;
+			$requestsReceived[] = $row['fromUserID'];
 			$row = $stmt->fetch();
 		}
 		$stmt->closeCursor();
@@ -92,7 +92,7 @@
 		$requestsSent = array();
 		
 		while ($row != null) {
-			$requestsSent[] = $toUserID;
+			$requestsSent[] = $row['toUserID'];
 			$row = $stmt->fetch();
 		}
 		$stmt->closeCursor();
@@ -108,7 +108,7 @@
 				WHERE toUserID = ? AND fromUserID = ?";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("ii", $userid, $ofUserID);
+		//$stmt->bind_param("ii", $userid, $ofUserID);
 		$stmt->bindValue(1, $userid);
 		$stmt->bindValue(2, $ofUserID);
 		$stmt->execute();
@@ -229,7 +229,6 @@
 				(userID = ? AND friendID = ?)";
 
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("iiii", $userid, $friendID, $friendID, $userid);
 		$stmt->bindValue(1, $userid);
 		$stmt->bindValue(2, $friendID);
 		$stmt->bindValue(3, $friendID);

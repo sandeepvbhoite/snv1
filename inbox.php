@@ -50,33 +50,7 @@
 							<?php
 								endforeach;
 							?>
-					          <!--        <a href=""><div class="message_entry"><img src="profile.jpg"  height="30" width="30">
-                                             <p  class="msender">Sandeep Bhoite</p>
-                                             <div id="mesg-data"><p>hi </p></div>
-          		                              <div id="bottom_post"> 
-				                                      <p> Friday, 28 Sept.2012 &nbsp;6:30 pm</p>
-					                              </div>
-					                              </div>
-					                  </a>
-					                   <a href=""><div class="message_entry"><img src="profile.jpg"  height="30" width="30">
-                                             <p  class="msender">Sandeep Bhoite</p>
-                                             <div id="mesg-data"><p>hi </p></div>
-          		                              <div id="bottom_post"> 
-				                                      <p> Friday, 28 Sept.2012 &nbsp;6:30 pm</p>
-					                              </div>
-					                              </div>
-					                  </a>
-					                   <a href=""><div class="message_entry"><img src="profile.jpg"  height="30" width="30">
-                                             <p  class="msender">Sandeep Bhoite</p>
-                                             <div id="mesg-data"><p>hi </p></div>
-          		                              <div id="bottom_post"> 
-				                                      <p> Friday, 28 Sept.2012 &nbsp;6:30 pm</p>
-					                              </div>
-					                              </div>
-					                  </a>
-
-					              -->   
-					             
+				             
               </div>         
 
 		<?php include('view/footer.html'); ?>
