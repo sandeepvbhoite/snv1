@@ -19,6 +19,7 @@
 ?>
 
 <?php
+            /* Check if there are any "liked" pages, and return them */
 			$pagesLiked = getPagesList($userid);
 			if (count($pagesLiked) == 0) {
 				$pagesLiked = false;
@@ -30,7 +31,9 @@
 					$pagesL[$i]['page_ID']   = $pagesLiked[$i];
 					$pagesL[$i]['page_name'] = getPageName($pagesLiked[$i]);
 				}
-			}
+            }
+
+            /* Check if there are any pages user own, and return them */
 			$pagesOwned = getOwnedPagesList($userid);
 			if (count($pagesOwned) == 0) { 
 				$pagesOwned = false;
@@ -42,5 +45,20 @@
 					$pagesO[$i]['page_ID'] = $pagesOwned[$i];
 					$pagesO[$i]['page_name'] = getPageName($pagesOwned[$i]);
 				}
-			}
+            }
+
+            /* Check if there any pages user "dislikes", and return them */
+            $pagesDisliked = getDislikedPagesList($userid);
+            if(count($pagesDisliked) == 0) {
+                $pagesDisliked = false;
+            } else {
+                $total = count($pagesDisliked);
+                $pagesD = array();
+                for ($i=0; $i<$total; $i++) {
+                    $pagesD[$i] = array();
+                    $pagesD[$i]['page_ID'] = $pagesDisliked[$i];
+                    $pagesD[$i]['page_name'] = getPageName($pagesDisliked[$i]);
+                }
+            }
+
 ?>

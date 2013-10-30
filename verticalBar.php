@@ -41,8 +41,34 @@
 						<p> You have not liked any pages yet</p>
 					</div>
 			<?php endif; ?>
-                         <!-- pages you own -->
+
+                         <!-- pages disliked -->
                      <div id="pages_label2">
+                           <p>Pages Disliked</p>
+                     </div>
+			 <!--page list starts here -->
+			 <?php if ($pagesDisliked): ?>
+
+			 <?php $total = count($pagesDisliked); ?>
+			 <?php foreach ($pagesD as $index => $pageD):
+			 			$page_name = $pageD['page_name'];
+						$page_ID = $pageD['page_ID'];
+			 ?>
+                    <a href="pages.php?action=showpage&id=<?php echo $page_ID; ?>"><div class="page-list">
+                               <img src="images/page-icon.jpg" width="15" height="15"/>
+                               <p><?php echo $page_name; ?></p>
+                               </div>
+                    </a>
+			<?php endforeach ?>
+			<?php else: ?>
+					<div class="page_list">
+						<p> You have not disliked any pages yet</p>
+					</div>
+			<?php endif; ?>
+
+
+                         <!-- pages you own -->
+                     <div id="pages_label3">
                            <p>Pages You Own</p>
                      </div>	
                             <!--page list starts here -->
@@ -66,8 +92,7 @@
                         <!-- create new page-->
                      <a href="pages.php"><div id="pages_label3">
                                 <p>Create New Page</p>
-                                </div>                     
-                     </a>  
-                                 
+                                </div>
+                     </a>
                      </div>   <!--vertical ends-->
 

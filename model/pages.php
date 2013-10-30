@@ -21,48 +21,88 @@
 	$db = database::getDB();
 
 	function getPagesList($userid) {
-		global $db;
-		
+		global $db;	
 		$query = "SELECT userID, pageID FROM pages_likes
 				WHERE userID = ?";
-		
+
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $userid);
 		$stmt->execute();
 		// Fetch first row
 		$row = $stmt->fetch();
 		$pages = array();
-		
+
 		while ($row != null) {
 			$pages[] = $row['pageID'];
 			$row = $stmt->fetch();
 		}
-		$stmt->closeCursor;
 		return $pages;
 	}
-	
+
+	function getDislikedPagesList($userid) {
+		global $db;	
+		$query = "SELECT userID, pageID FROM pages_dislikes
+				WHERE userID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$stmt->execute();
+		// Fetch first row
+		$row = $stmt->fetch();
+		$pages = array();
+
+		while ($row != null) {
+			$pages[] = $row['pageID'];
+			$row = $stmt->fetch();
+		}
+		return $pages;
+	}
+
 	function likeNewPage($userid, $pageID) {
 		global $db;
 		$query = "INSERT INTO pages_likes
 				(userID, pageID)
 				VALUES
 				(?, ?)";
-		
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $userid);
 		$stmt->bindValue(2, $pageID);
 		$success = $stmt->execute();
-		
 		return $success;
 	}
+
+    function dislikeNewPage($userid, $pageID) {
+        global $db;
+
+        $query = "INSERT INTO pages_dislikes
+                (userID, pageID)
+                VALUES
+                (?, ?)";
+        $stmt = $db->prepare($query);
+        $stmt->bindValue(1, $userid);
+        $stmt->bindValue(2, $pageID);
+        $success = $stmt->execute();
+        return $success;
+    }
+
+    function removeOldDislike($userid, $pageID) {
+        global $db;
+        $query = "DELETE FROM pages_dislikes
+                WHERE
+                userID = ? AND pageID = ?";
+        $stmt = $db->prepare($query);
+        $stmt->bindValue(1, $userid);
+        $stmt->bindValue(2, $pageID);
+        $success = $stmt->execute();
+        return $success;
+    }
 
 	function unlikeOldPage($userid, $pageID) {
 		global $db;
-		
 		$query = "DELETE FROM pages_likes
 				WHERE
 				userID = ? AND pageID = ?";
-		
+
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $userid);
 		$stmt->bindValue(2, $pageID);
@@ -70,12 +110,12 @@
 		return $success;
 	}
 
-	function getOwnedPagesList($userid) {  
+	function getOwnedPagesList($userid) {
 		global $db;
-		
+
 		$query = "SELECT pageID FROM pages
 				WHERE ownerID = ?";
-		
+
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $userid);
 		$success = $stmt->execute();
@@ -94,7 +134,6 @@
 
 		$query = "SELECT name FROM pages
 				WHERE pageID = ?";
-		
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $pageID);
 		$stmt->execute();
@@ -109,7 +148,7 @@
 
 		$query = "SELECT pic FROM pages
 				WHERE pageID = ?";
-		
+
 		$stmt = $db->prepare($query);
 		$stmt->bindValue(1, $pageID);
 		$stmt->execute();
@@ -123,7 +162,7 @@
 
 		$query = "SELECT userID, commentText, timeOn FROM page_post_comments
 				WHERE postID = ?";
-		
+
 		$stmt = $db->prepare($query);
 		$stmt->bindParam(1, $postID);
 		$success = $stmt->execute();
@@ -144,11 +183,10 @@
 
 	function getPagePostLikes($postID) {
 		global $db;
-		
+
 		$query = "SELECT COUNT(*) AS totallikes
 				FROM page_post_likes
 				WHERE postID = ?";
-		
 		$stmt = $db->prepare($query);
 		$stmt->bindParam(1, $postID);
 		$stmt->execute();
@@ -161,6 +199,26 @@
 		return $total;
 	}
 
+	function isDisLiked($userid, $pageID) {
+		global $db;
+
+		$query = "SELECT COUNT(*) AS total FROM pages_dislikes
+				WHERE userID = ? AND pageID = ?";
+
+		$stmt = $db->prepare($query);
+		$stmt->bindValue(1, $userid);
+		$stmt->bindValue(2, $pageID);
+
+		$success = $stmt->execute();
+		$row = $stmt->fetch();
+		$isDisliked = $row['total'];
+		$stmt->closeCursor();
+		if ($isDisliked) {
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	function isLiked($userid, $pageID) {
 		global $db;
@@ -602,7 +660,6 @@
 		$success = $stmt->execute();
 		$row = $stmt->fetch();
 		$type = $row['typeID'];
-		$stmt->closeCursor;
 		return $type;
 	}
 	

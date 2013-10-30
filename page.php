@@ -19,12 +19,11 @@
 ?>
 <!DOCTYPE html>
 <html>
-	<?php include('view/header.html'); ?>  
+	<?php include('view/header.html'); ?>
    <body>
    <div id="main">
-		<?php include('view/panel.html'); ?>            
-         <div id="page">
-  
+		<?php include('view/panel.html'); ?>
+         <div id="page"> 
 
 				<?php include('verticalBar.php'); ?>
 
@@ -34,10 +33,15 @@
                     <div id="page-button">
 
 					<?php if (!$isOwner): ?>
-						<?php if (!$isLiked): ?>
-    	            	    <a href="pages.php?id=<?php echo $pageID; ?>&action=likepage" class="like-btn" title="Like This Page">Like</a>
-						<?php else: ?>
-            		        <a href="pages.php?id=<?php echo $pageID; ?>&action=unlikepage" class="like-btn" title="Unlike This Page">Unlike</a>
+						<?php if ((!$isLiked) and (!$isDisliked)): ?>
+                            <a href="pages.php?id=<?php echo $pageID; ?>&action=likepage" class="like-btn" title="Like This Page">Like</a>
+                            <a href="pages.php?id=<?php echo $pageID; ?>&action=dislikepage" class="like-btn" title="Dislike This Page">Dislike</a>
+                        <?php else: ?>
+                            <?php if ($isLiked): ?>
+            		            <a href="pages.php?id=<?php echo $pageID; ?>&action=unlikepage" class="like-btn" title="Unlike This Page">Unlike</a>
+                            <?php else: ?>
+                                <a href="pages.php?id=<?php echo $pageID; ?>&action=removedislike" class="like-btn" title="Remove from Dislikes">Remove Dislike</a>
+                            <?php endif; ?>
 						<?php endif; ?>
 					<?php endif; ?>
 

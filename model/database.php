@@ -23,9 +23,9 @@ class database
 {
 	private static $db;
 	// Username for the database
-	private static $username = 'sntester';
+	private static $username = 'root';
 	// Password of the user
-	private static $password = 'snt3st3rv1';
+	private static $password = 'darkstone$';
 	private static $dsn = 'mysql:dbname=snv1;host=127.0.0.1;charset=utf8';
 
 	private function __construct() { }

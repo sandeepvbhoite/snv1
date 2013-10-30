@@ -19,7 +19,7 @@ CREATE user 'sntester' IDENTIFIED BY 'snt3st3rv1';
 
 GRANT SELECT, INSERT, DELETE, UPDATE
 ON snv1.*
-TO 'sntester'@'locahost'
+TO 'sntester'
 IDENTIFIED BY 'snt3st3rv1';
 --
 -- Database: `snv1`

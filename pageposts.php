@@ -24,7 +24,8 @@
 				$type = getTypeOfPage($pageID);
 				$isOwner = isOwner($userid, $pageID);
 				if (!$isOwner) {
-					$isLiked  = isLiked($userid, $pageID);
+                    $isLiked  = isLiked($userid, $pageID);
+                    $isDisliked = isDisliked($userid, $pageID);
 				}
 				$posts = pagePosts($pageID);
 				$mypic = getCurrentProfilePic($userid);
