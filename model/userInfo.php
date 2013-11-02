@@ -233,8 +233,8 @@
 				SET pic = ?
 				WHERE userID = ?";
 		$stmt = $db->prepare($query);
-		$stmt->bind_param("si", $newpath, $userid);
-		$stmt->bindValue(1, $newpath);
+	//	$stmt->bind_param("si", $newpath, $userid);
+		$stmt->bindValue(1, $newPath);
 		$stmt->bindValue(2, $userid);
 
 		$success = $stmt->execute();

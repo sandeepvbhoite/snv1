@@ -60,7 +60,7 @@
             $pageID = $_GET['id'];
             $success = dislikeNewPage($userid, $pageID);
             include ('pageposts.php');
-            include ('sidebar.php.');
+            include ('sidebar.php');
             include ('page.php');
         } else if ($action == 'removedislike') {
             $pageID = $_GET['id'];
